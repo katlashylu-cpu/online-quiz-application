@@ -1,72 +1,97 @@
-const quizData = [
+const questions = [
   {
-    question: "Which language runs in a web browser?",
-    options: ["Java", "C", "Python", "JavaScript"],
-    answer: "JavaScript"
+    question: "What is the capital of France?",
+    options: ["Berlin", "Madrid", "Paris", "Rome"],
+    answer: "Paris"
   },
   {
-    question: "What does CSS stand for?",
-    options: ["Central Style Sheets", "Cascading Style Sheets", "Computer Style System", "Creative Style Syntax"],
-    answer: "Cascading Style Sheets"
+    question: "Which planet is known as the Red Planet?",
+    options: ["Earth", "Mars", "Jupiter", "Venus"],
+    answer: "Mars"
   },
   {
-    question: "Which HTML tag is used for JavaScript?",
-    options: ["<js>", "<script>", "<javascript>", "<code>"],
-    answer: "<script>"
+    question: "Who wrote 'Hamlet'?",
+    options: ["Charles Dickens", "William Shakespeare", "Leo Tolstoy", "Mark Twain"],
+    answer: "William Shakespeare"
   }
 ];
 
 let currentQuestion = 0;
 let score = 0;
+let timer;
+let timeLeft = 15;
 
 const questionEl = document.getElementById("question");
 const optionsEl = document.getElementById("options");
 const nextBtn = document.getElementById("next-btn");
-const resultEl = document.getElementById("result");
+const resultBox = document.getElementById("result-box");
+const scoreEl = document.getElementById("score");
+const feedbackEl = document.getElementById("feedback");
+const timeEl = document.getElementById("time");
+const counterEl = document.getElementById("question-counter");
 
 function loadQuestion() {
-  const q = quizData[currentQuestion];
+  clearInterval(timer);
+  timeLeft = 15;
+  timeEl.textContent = timeLeft;
+  timer = setInterval(updateTimer, 1000);
+
+  const q = questions[currentQuestion];
   questionEl.textContent = q.question;
+  counterEl.textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
   optionsEl.innerHTML = "";
+  feedbackEl.textContent = "";
+
   q.options.forEach(option => {
-    const btn = document.createElement("button");
-    btn.textContent = option;
-    btn.classList.add("option");
-    btn.onclick = () => selectAnswer(btn, q.answer);
-    optionsEl.appendChild(btn);
+    const li = document.createElement("li");
+    li.textContent = option;
+    li.onclick = () => checkAnswer(option, li);
+    optionsEl.appendChild(li);
   });
 }
 
-function selectAnswer(selectedBtn, correctAnswer) {
-  const allOptions = document.querySelectorAll(".option");
-  allOptions.forEach(btn => {
-    btn.disabled = true;
-    if (btn.textContent === correctAnswer) {
-      btn.classList.add("correct");
-    } else if (btn === selectedBtn) {
-      btn.classList.add("wrong");
-    }
-  });
-
-  if (selectedBtn.textContent === correctAnswer) {
-    score++;
+function updateTimer() {
+  timeLeft--;
+  timeEl.textContent = timeLeft;
+  if (timeLeft === 0) {
+    clearInterval(timer);
+    feedbackEl.textContent = "Time's up!";
+    disableOptions();
   }
 }
 
-nextBtn.addEventListener("click", () => {
+function checkAnswer(selected, element) {
+  clearInterval(timer);
+  const correct = questions[currentQuestion].answer;
+  if (selected === correct) {
+    score++;
+    feedbackEl.textContent = "Correct!";
+    element.style.backgroundColor = "#c8e6c9";
+  } else {
+    feedbackEl.textContent = `Wrong! Correct answer: ${correct}`;
+    element.style.backgroundColor = "#ffcdd2";
+  }
+  disableOptions();
+}
+
+function disableOptions() {
+  const options = document.querySelectorAll("#options li");
+  options.forEach(opt => opt.onclick = null);
+}
+
+function showResult() {
+  document.getElementById("quiz-box").classList.add("hidden");
+  resultBox.classList.remove("hidden");
+  scoreEl.textContent = `${score} out of ${questions.length}`;
+}
+
+nextBtn.onclick = () => {
   currentQuestion++;
-  if (currentQuestion < quizData.length) {
+  if (currentQuestion < questions.length) {
     loadQuestion();
   } else {
     showResult();
   }
-});
+};
 
-function showResult() {
-  document.getElementById("quiz").classList.add("hidden");
-  resultEl.classList.remove("hidden");
-  resultEl.innerHTML = <h2>Your Score: ${score} / ${quizData.length}</h2>;
-}
-
-// Load first question
 loadQuestion();
